@@ -155,13 +155,6 @@ int main(int argc, char *argv[])
 
 	
 	//Cuántos procesos se usaran
-	ss.clear();
-	ss << argv[3];
-	ss >> numprocs;
-	if (numprocs < 1) {
-		std::cerr << " Numero de proceso no permitido, debe ser mayor a 1\n";
-		return -1;
-	}
 	std::cout << "Proceso: " << (int)floor(numprocs) << std::endl;
 
 	//	llamar procesos de blur paralelos
