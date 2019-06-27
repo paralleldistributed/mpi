@@ -1,5 +1,6 @@
 // mpicc be-mpi.cpp -o be-mpi -lm --lopencv_core -lopencv_highgui
 // mpirun -np 4 --hostfile mpi-hosts ./mpi-omp_pi
+// mpic++ be-mpi.cpp -o be-mpi `pkg-config opencv --libs`
 #include <stdio.h>
 #include <string.h>
 #include <mpi.h>
@@ -179,7 +180,7 @@ int main(int argc, char *argv[])
 		arg->radio = radio;
 		arg->id_thread = i;
 		// arg->id_thread = processId
-		thread_Blur(arg)
+		thread_Blur(arg);
 		//threads.push_back(std::thread(thread_Blur, arg));
 	}
 	
