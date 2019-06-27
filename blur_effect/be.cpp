@@ -1,3 +1,5 @@
+
+// sudo g++ -o be-mpi be.cpp -lopencv_core -lpthread -lopencv_highgui
 #include <iostream>
 #include <cmath>
 #include <thread>
@@ -51,7 +53,7 @@ int xyToi(int x, int y, int cols) {
 * Halla la suma promediada de los pixeles vecinos en base a un kernel
 * src*			Un apuntador a el vector de datos de la imagen
 * pos:			El indice del pixel, el indice en base a un array unidimencional
-* rows, cols:	dimenciones de la imagen que se esta procesando
+* rows, cols:	        dimensiones de la imagen que se esta procesando
 * radio:		El radio del kernel para los pixeles vecinos
 * Retorna un entero con el valor de i
 */
@@ -176,19 +178,11 @@ int main(int n, char* argv[])
 	}
 
 	std::cout << "Fin threads\n";
-	//Liberando y reasignando memoria
-	//free(src.data);
+	
 	src.data = (uchar*)ans;
 	std::cout << "Memoria liberada\n";
 
-	//	namedWindow("final");
-	//	imshow("final", dst);
-
-	/*cv::namedWindow("initial");*/
-	/*cv::imshow("initial", src);*/
-	imwrite("./thread_blur.jpg", src);
-
-	/*cv::waitKey(0);*/
+	imwrite("thread_blur.jpg", src);
 
 	return 0;
 }
