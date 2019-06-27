@@ -108,20 +108,16 @@ void thread_Blur(const args *arg) {
 	return;
 }
  
-int main(int argc,int n, char *argv[])
+int main(int argc,char *argv[])
 {
     int processId, numprocs;
 
 	int img_size = 0;
 	float radio = -1;
 	cv::Mat src;
-
-	//	Prueba que los parametros esten completos
-	if (n != 3) {
-		printf("blur <ruta img> <kernel> \n");
-		return 0;
-	}
-
+	printf("Hola \n");
+	std::cout << "size of arguments: " << argv.size() << std::endl;
+	
 	//	Determina el radio del kernel
 	std::stringstream ss;
 	ss << argv[2];
