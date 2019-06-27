@@ -108,7 +108,7 @@ void thread_Blur(const args *arg) {
 	return;
 }
  
-int main(int argc,char *argv[])
+int main(int argc, char *argv[])
 {
     int processId, numprocs;
 
@@ -116,7 +116,7 @@ int main(int argc,char *argv[])
 	float radio = -1;
 	cv::Mat src;
 	printf("Hola \n");
-	std::cout << "size of arguments: " << argv.size() << std::endl;
+	std::cout << "size of arguments: " << argc << std::endl;
 	
 	//	Determina el radio del kernel
 	std::stringstream ss;
