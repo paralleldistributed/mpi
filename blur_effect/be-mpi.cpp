@@ -1,4 +1,4 @@
-// mpicc mpi-omp_pi.c -o mpi-omp_pi -lm -fopenmp
+// mpicc be-mpi.cpp -o be-mpi -lm --lopencv_core -lopencv_highgui
 // mpirun -np 4 --hostfile mpi-hosts ./mpi-omp_pi
 #include <stdio.h>
 #include <string.h>
@@ -32,7 +32,7 @@ const uchar3 *origin;
 
 /**
 * Convierte i a una cordenada de la forma (x,y).
-* Retorna un apuntador con 2 pociciones reservadas.
+* Retorna un apuntador con 2 posiciones reservadas.
 * En la primera almacena el valor de x
 * En la segunda almacena el valor de y
 */
@@ -56,7 +56,7 @@ int xyToi(int x, int y, int cols) {
 * Halla la suma promediada de los pixeles vecinos en base a un kernel
 * src*			Un apuntador a el vector de datos de la imagen
 * pos:			El indice del pixel, el indice en base a un array unidimencional
-* rows, cols:	dimenciones de la imagen que se esta procesando
+* rows, cols:	dimensiones de la imagen que se esta procesando
 * radio:		El radio del kernel para los pixeles vecinos
 * Retorna un entero con el valor de i
 */
@@ -106,47 +106,90 @@ void thread_Blur(const args *arg) {
 	}
 	return;
 }
-
- 
-#define ITERATIONS 2e05
-#define MAXTHREADS 32
- 
-int calculatePi(double *pi, int numprocs, int processId)
-{   int start, end;
-    printf("processId: %d \n",processId);
-    start = (long)(ITERATIONS/numprocs)*processId;
-    printf( "Start is : %d \n" ,start);
-    end = (long)(ITERATIONS/numprocs) * (1+processId);
-    printf( "End is : %d \n" ,end);
-    int i = start;
- 
-    do{
-        *pi = *pi + (double)(4.0 / ((i*2)+1));
-        i++;
-        *pi = *pi - (double)(4.0 / ((i*2)+1));
-        i++;
-    }while(i < end);
-    printf("Pi local: %.10f\n",*pi); 
-    return 0;
-}
- 
- 
  
 int main(int argc, char *argv[])
 {
     int done = 0, n, processId, numprocs, I, rc, i;
-    double PI25DT = 3.141592653589793238462643;
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &processId);
-    if (processId == 0) printf("\nLaunching with %i processes", numprocs);
-    double local_pi[numprocs], global_pi;
-    global_pi = 0.0;
-    printf("%d \n", processId);
-    calculatePi(&local_pi[processId], numprocs, processId);
-   printf("Local pi es: %.16f\n", &local_pi[processId]);
-  MPI_Reduce(local_pi, &global_pi, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    if (processId == 0) printf("\npi is approximately %.16f, Error is %.16f\n", global_pi, fabs(global_pi - PI25DT));
+
+	int img_size = 0;
+	float radio = -1;
+	cv::Mat src;
+
+	//	Prueba que los parametros esten completos
+	if (n != 3) {
+		printf("blur <ruta img> <kernel> \n");
+		return 0;
+	}
+
+	//	Determina el radio del kernel
+	std::stringstream ss;
+	ss << argv[2];
+	ss >> radio;
+	if (radio < 1) {
+		std::cerr << " Radio incorrecto para el Kernel, debe ser mayor a 1\n";
+		return -1;
+	}
+	std::cout << "Kernel radio: " << (int)floor(radio) << std::endl;
+
+	//Cuántos hilos se usaran
+	ss.clear();
+	ss << argv[3];
+	ss >> numprocs;
+	if (numprocs < 1) {
+		std::cerr << " Numero de hilos no permitido, debe ser mayor a 1\n";
+		return -1;
+	}
+	std::cout << "Hilos: " << (int)floor(numprocs) << std::endl;
+
+	//	Carga la imagen en memoria
+	src = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
+	if (!src.data) {
+		std::cerr << "Error al leer la imagen\n";
+		return -1;
+	}
+	origin = (uchar3*)src.data;
+	std::cout << "Imagen: " << src.cols << "x" << src.rows << std::endl;
+
+	//	Determina el tamaño del bloque de memoria para la imagen
+	img_size = src.cols*src.rows * sizeof(uchar3);
+	std::cout << "Imagen: " << ((double)img_size) / 1e6 << " Mb." << std::endl;
+
+	//	Reservar la memoria para imagen de respuesta
+	ans = (uchar3*)malloc(img_size);
+	if (ans == NULL) {
+		std::cerr << "Error al reservar memoria para imagen ans en GPU\n";
+		return -1;
+	}
+	std::cout << "Memoria de imagen ans \n";
+
+	//	llamar procesos de blur paralelos
+	//std::vector<std::thread> threads;
+
+	std::cout << "iniciando" << std::endl;
+	for (int i = 0; i < numprocs; i++) {
+		args *arg = new args;
+		arg->src = (uchar3*)src.data;
+		arg->ans = ans;
+		arg->cols = src.cols;
+		arg->rows = src.rows;
+		arg->n_threads = numprocs;
+		arg->radio = radio;
+		arg->id_thread = i;
+		// arg->id_thread = processId
+		thread_Blur(arg)
+		//threads.push_back(std::thread(thread_Blur, arg));
+	}
+	
+	src.data = (uchar*)ans;
+	std::cout << "Memoria liberada\n";
+
+	imwrite("thread_blur.jpg", src);
+
+  	//MPI_Reduce(local_pi, &global_pi, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    
     MPI_Finalize();
     return 0;
 }
