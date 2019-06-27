@@ -111,9 +111,6 @@ void thread_Blur(const args *arg) {
 int main(int argc, char *argv[])
 {
     int done = 0, n, processId, numprocs, I, rc, i;
-    MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-    MPI_Comm_rank(MPI_COMM_WORLD, &processId);
 
 	int img_size = 0;
 	float radio = -1;
@@ -134,16 +131,6 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 	std::cout << "Kernel radio: " << (int)floor(radio) << std::endl;
-
-	//Cuántos hilos se usaran
-	ss.clear();
-	ss << argv[3];
-	ss >> numprocs;
-	if (numprocs < 1) {
-		std::cerr << " Numero de hilos no permitido, debe ser mayor a 1\n";
-		return -1;
-	}
-	std::cout << "Hilos: " << (int)floor(numprocs) << std::endl;
 
 	//	Carga la imagen en memoria
 	src = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
@@ -166,11 +153,25 @@ int main(int argc, char *argv[])
 	}
 	std::cout << "Memoria de imagen ans \n";
 
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &processId);
+
+	
+	//Cuántos procesos se usaran
+	ss.clear();
+	ss << argv[3];
+	ss >> numprocs;
+	if (numprocs < 1) {
+		std::cerr << " Numero de proceso no permitido, debe ser mayor a 1\n";
+		return -1;
+	}
+	std::cout << "Proceso: " << (int)floor(numprocs) << std::endl;
+
 	//	llamar procesos de blur paralelos
 	//std::vector<std::thread> threads;
 
 	std::cout << "iniciando" << std::endl;
-	for (int i = 0; i < numprocs; i++) {
 		args *arg = new args;
 		arg->src = (uchar3*)src.data;
 		arg->ans = ans;
@@ -178,11 +179,10 @@ int main(int argc, char *argv[])
 		arg->rows = src.rows;
 		arg->n_threads = numprocs;
 		arg->radio = radio;
-		arg->id_thread = i;
+		arg->id_thread = processId;
 		// arg->id_thread = processId
 		thread_Blur(arg);
 		//threads.push_back(std::thread(thread_Blur, arg));
-	}
 	
 	src.data = (uchar*)ans;
 	std::cout << "Memoria liberada\n";
