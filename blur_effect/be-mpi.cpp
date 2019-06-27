@@ -108,9 +108,9 @@ void thread_Blur(const args *arg) {
 	return;
 }
  
-int main(int argc, char *argv[])
+int main(int argc,int n, char *argv[])
 {
-    int done = 0, n, processId, numprocs, I, rc, i;
+    int processId, numprocs;
 
 	int img_size = 0;
 	float radio = -1;
