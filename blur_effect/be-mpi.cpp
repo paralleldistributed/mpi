@@ -177,10 +177,13 @@ int main(int argc, char *argv[])
 	std::cout << "Memoria liberada\n";
 
 	MPI_Reduce(ans, &src.data, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    
+    if (processId == 0)
+	{
+		std::cout << "MPI finalize\n";
+		imwrite("thread_blur.jpg", src);
+		std::cout << "Copia de imagen\n";
+	} 
     MPI_Finalize();
-	std::cout << "MPI finalize\n";
-	imwrite("thread_blur.jpg", src);
-	std::cout << "Copia de imagen\n";
+	
     return 0;
 }
