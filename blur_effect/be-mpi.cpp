@@ -1,5 +1,5 @@
 // mpicc be-mpi.cpp -o be-mpi -lm --lopencv_core -lopencv_highgui
-// mpirun -np 4 --hostfile mpi-hosts ./mpi-omp_pi
+// mpirun -np 4 --hostfile mpi_hosts ./be-mpi 720.jpg 4
 // mpic++ be-mpi.cpp -o be-mpi `pkg-config opencv --libs`
 #include <stdio.h>
 #include <string.h>
