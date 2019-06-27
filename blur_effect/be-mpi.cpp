@@ -183,10 +183,11 @@ int main(int argc, char *argv[])
 	src.data = (uchar*)ans;
 	std::cout << "Memoria liberada\n";
 
-	imwrite("thread_blur.jpg", src);
-
-  	//MPI_Reduce(local_pi, &global_pi, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	///MPI_Reduce(local_pi, &global_pi, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     
     MPI_Finalize();
+	std::cout << "MPI finalize\n";
+	imwrite("thread_blur.jpg", src);
+	std::cout << "Copia de imagen\n";
     return 0;
 }
