@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
 	src.data = (uchar*)ans;
 	std::cout << "Memoria liberada\n";
 
-	///MPI_Reduce(local_pi, &global_pi, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(ans, &src.data, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     
     MPI_Finalize();
 	std::cout << "MPI finalize\n";
